@@ -14,7 +14,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from tracker.models import User, TimeTracker
 
 
-class IndexView(View):
+class IndexView(View, LoginRequiredMixin):
+    login_url = 'tracker:login'
+
     def get(self, request: HttpRequest):
         today = timezone.now().date()
         start_of_week = today - timedelta(days=(today.weekday() + 2) % 7)
