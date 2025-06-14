@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}PishraftNegar . Login {% endblock %}
+
+{% block head %}
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        },
+                    },
+                },
+                fontFamily: {
+                    sans: ['Vazir', 'sans-serif'],
+                },
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Vazir', sans-serif;
+        }
+        
+        /* انیمیشن‌های سفارشی */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-scaleIn {
+            animation: scaleIn 0.3s ease-out;
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <!-- صفحه اصلی لاگین -->
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden animate-scaleIn">
+            <!-- هدر لاگین -->
+            <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-center">
+                <h1 class="text-2xl font-bold text-white">
+                    <i class="fas fa-book-open mr-2"></i> PishraftNegar
+                </h1>
+                <p class="mt-2 text-primary-200">سیستم رصد مطالعه هوشمند</p>
+            </div>
+            
+            <div class="p-6">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-6">ورود به حساب کاربری</h2>
+                
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input 
+                                type="username" 
+                                id="username" 
+                                required
+                                class="w-full pr-10 pl-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                placeholder="username"
+                            >
+                        </div>
+                        <p id="usernameError" class="mt-1 text-sm text-red-600 hidden">لطفاً یک ایمیل معتبر وارد کنید</p>
+                    </div>
+                    
+                    <!-- فیلد رمز عبور -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            رمز عبور
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                required
+                                minlength="5"
+                                class="w-full pr-10 pl-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                placeholder="••••••••"
+                            >
+                        </div>
+                        <p id="passwordError" class="mt-1 text-sm text-red-600 hidden">رمز عبور باید حداقل ۶ کاراکتر باشد</p>
+                    </div>
+                    
+                    <!-- دکمه ورود -->
+                    <button 
+                        type="submit" 
+                        id="submitBtn"
+                        class="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-lg transition flex items-center justify-center"
+                    >
+                        <i class="fas fa-sign-in-alt ml-2"></i>
+                        <span>ورود به سیستم</span>
+                        <div id="loadingSpinner" class="mr-2 hidden">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- فوتر -->
+            <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <!-- دکمه تغییر تم -->
+                    <button id="themeToggle" class="p-2 px-4 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:inline"></i>
+                    </button>
+                    
+                    <!-- لینک‌های مفید -->
+                    <div class="flex space-x-4 space-x-reverse">
+                        <a class="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+                            سیستم رصد هوشمند مطالعه
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // تغییر تم دارک/لایت
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // بررسی تم ذخیره شده
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // اعتبارسنجی فرم
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // اعتبارسنجی رمز عبور
+        passwordInput.addEventListener('input', () => {
+            if (passwordInput.value.length < 5) {
+                passwordError.classList.remove('hidden');
+                passwordInput.classList.add('border-red-500', 'focus:ring-red-500');
+            } else {
+                passwordError.classList.add('hidden');
+                passwordInput.classList.remove('border-red-500', 'focus:ring-red-500');
+            }
+        });
+
+        // ارسال فرم
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // نمایش اسپینر
+            submitBtn.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+            submitBtn.querySelector('span').textContent = 'در حال ورود...';
+            
+            // شبیه‌سازی تاخیر برای لاگین
+            // await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // در اینجا می‌توانید درخواست واقعی به سرور ارسال کنید
+            // مثلا:
+            try {
+                const response = await fetch("{% url 'tracker:login' %}", {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        username: username.value,
+                        password: passwordInput.value
+                    })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    window.location.href = "{% url 'tracker:index' %}";
+                } else {
+                    showError(data.message || 'خطا در ورود');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('خطا در ارتباط با سرور');
+                return;
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded';
+            errorDiv.textContent = message;
+            loginForm.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+    </script>
+{% endblock %}

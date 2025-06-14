@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+
+{% block head %}
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                fontFamily: {
+                    sans: ['Vazir', 'sans-serif'],
+                },
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Vazir', sans-serif;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="min-h-screen p-4 md:p-8">
+        <!-- هدر -->
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                <i class="fas fa-book-open mr-2"></i> PishraftNegar
+            </h1>
+            <div class="flex items-center gap-4">
+                {% if user.is_authenticated %}
+                    <a class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">
+                        {{ user.first_name }} <i class="fas fa-user-circle ml-2"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'tracker:login' %}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">
+                        ورود
+                    </a>
+                {% endif %}
+                <button id="themeToggle" class="p-2 px-4 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- کاربر ۱ -->
+            {% for user in users %}
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg animate-fadeIn">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full {% if forloop.counter0|divisibleby:2 %} bg-indigo-100 dark:bg-indigo-900 {% else %} bg-pink-100 dark:bg-pink-900 {% endif %}flex items-center justify-center">
+                        <span class="{% if forloop.counter0|divisibleby:2 %} text-indigo-600 dark:text-indigo-300 {% else %} text-pink-600 dark:text-pink-300 {% endif %} font-bold">{{ user.first_name|slice:"3" }}</span>
+                    </div>
+                    <h3 class="mr-3 text-lg font-medium text-gray-800 dark:text-white">{{ user.first_name }}</h3>
+                </div>
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-1">
+                        <span>پیشرفت هفته: {{ user.weekly_hours|persianize_digits }}/{{ user.target_weekly_hours|persianize_digits }} ساعت</span>
+                        <span>{% widthratio user.weekly_hours user.target_weekly_hours 100 %}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                        <div class="{% if forloop.counter0|divisibleby:2 %} bg-indigo-600 {% else %} bg-pink-600 {% endif %}h-2.5 rounded-full" style="width: {{ user.weekly_hours|progress_percentage:user.target_weekly_hours }}%"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+
+        <!-- بخش هدف هفتگی -->
+        <section class="mb-8 animate-fadeIn">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- کارت اول -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">🎯 درس روزانه</h2>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <form class="w-full" method="post" action="{% url 'tracker:daily_report' %}">
+                            {% csrf_token %}
+                            <div class="flex flex-col md:flex-row gap-2 w-full"> <!-- تغییر اینجا -->
+                                <input 
+                                    type="number" 
+                                    name="study_hours"
+                                    required
+                                    min="0"
+                                    max="24"
+                                    step="0.01"
+                                    placeholder="مقدار مطالعه" 
+                                    class="w-full h-12 p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                >
+                                <button 
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition whitespace-nowrap min-w-[120px]"
+                                >
+                                    ثبت مقدار
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- کارت دوم -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">🎯 هدف هفتگی</h2>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <form class="w-full" method="post" action="{% url 'tracker:weekly_target' %}">
+                            {% csrf_token %}
+                            <div class="flex flex-col md:flex-row gap-2 w-full"> <!-- تغییر اینجا -->
+                                <input 
+                                    type="number" 
+                                    name="weekly_target"
+                                    required
+                                    min="1"
+                                    max="168"
+                                    placeholder="تعداد ساعت هدف (مثلا ۲۰)" 
+                                    class="w-full h-12 p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                >
+                                <button 
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition whitespace-nowrap min-w-[120px]"
+                                >
+                                    ثبت هدف
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- نمودار پیشرفت -->
+        <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg animate-fadeIn">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">📊 نمودار پیشرفت هفتگی</h2>
+            <div class="h-64">
+                <canvas id="weeklyProgressChart"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                const input = button.previousElementSibling;
+                if (input.value === '') {
+                    input.classList.add('ring-2', 'ring-red-500');
+                    setTimeout(() => input.classList.remove('ring-2', 'ring-red-500'), 2000);
+                }
+            });
+        });
+            const ctx = document.getElementById('weeklyProgressChart').getContext('2d');
+    
+        const weeklyData = {
+            labels: ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'],
+            datasets: [{
+                label: 'ساعات مطالعه',
+                data: {{ weekly_hours|safe }},
+                backgroundColor: 'rgba(79, 70, 229, 0.5)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+                borderWidth: 1,
+                tension: 0.1
+            }, {
+                label: 'هدف روزانه',
+                data: Array(7).fill({{ daily_target }}),
+                borderColor: 'rgba(236, 72, 153, 1)',
+                borderWidth: 1,
+                borderDash: [5, 5],
+                type: 'line',
+                pointRadius: 0
+            }]
+        };
+
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: weeklyData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'ساعات',
+                            font: {
+                                family: 'Vazir'
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                family: 'Vazir'
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                family: 'Vazir'
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        rtl: true,
+                        labels: {
+                            font: {
+                                family: 'Vazir'
+                            },
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        rtl: true,
+                        titleFont: {
+                            family: 'Vazir'
+                        },
+                        bodyFont: {
+                            family: 'Vazir'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
