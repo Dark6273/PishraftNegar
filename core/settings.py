@@ -86,12 +86,26 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DATABASE_TYPE = os.getenv('DJANGO_DATABASE_TYPE', 'sqlite3')
+
+if DATABASE_TYPE == 'postgres':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DJANGO_DB_NAME', 'tracker_db'),
+            'USER': os.getenv('DJANGO_DB_USER', 'tracker_user'),
+            'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', 'password'),
+            'HOST': os.getenv('DJANGO_DB_HOST', 'localhost'),
+            'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
